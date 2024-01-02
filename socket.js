@@ -4,6 +4,7 @@ const moment = require('moment');
 
 function setupSocket(server) {
   const io = new Server(server, {
+    path:'./socket',
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
