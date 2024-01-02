@@ -11,12 +11,16 @@
   },
   "routes": [
     {
-      "src": "./socket",
-      "dest": "./index.js"
+      "src": "/socket",
+      "dest": "./index.js",
+      "headers": {
+        "Connection": "Upgrade",
+        "Upgrade": "websocket"
+      }
     },
     {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "/index.js"
     }
   ]
 }
