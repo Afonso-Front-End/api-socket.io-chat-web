@@ -14,6 +14,7 @@ function setupSocket(server) {
 
   io.on('connect', (socket) => {
     let identificador = null
+    socket.emit('mensagemInicial', { mensagem: 'Bem-vindo ao seu servidor Socket.io!' });
 
     socket.on('usuario conectado', (identifier) => {
       console.log('usuario conectado', identifier)
