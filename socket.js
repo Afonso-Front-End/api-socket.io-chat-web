@@ -4,8 +4,8 @@ const moment = require('moment');
 
 function setupSocket(server) {
   const io = new Server(server, {
-    path:'./socket',
     cors: {
+      path:'./socket',
       origin: "*",
       methods: ["GET", "POST"],
       allowedHeaders: ["my-custom-header"],
@@ -15,7 +15,6 @@ function setupSocket(server) {
 
   io.on('connect', (socket) => {
     let identificador = null
-    socket.emit('mensagemInicial', { mensagem: 'Bem-vindo ao seu servidor Socket.io!' });
 
     socket.on('usuario conectado', (identifier) => {
       console.log('usuario conectado', identifier)
