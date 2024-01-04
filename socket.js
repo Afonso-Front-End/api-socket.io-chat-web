@@ -5,7 +5,6 @@ const moment = require('moment');
 function setupSocket(server) {
   const io = new Server(server, {
     cors: {
-      path:'./socket',
       origin: "*",
       methods: ["GET", "POST"],
       allowedHeaders: ["my-custom-header"],
@@ -79,7 +78,6 @@ function setupSocket(server) {
     });
 
     socket.on('mensagem', async (data) => {
-
       try {
         const horaEnvio = moment().format('YYYY-MM-DD HH:mm:ss');
 
@@ -95,6 +93,7 @@ function setupSocket(server) {
           img: data.userLog.img,
           message: data.mensagemText,
           hora: horaEnvio,
+          destinatario: data.userSelected.identifier
         });
 
         socket.to(data.userSelected.identifier).emit('novaMensagem', {
@@ -104,6 +103,7 @@ function setupSocket(server) {
           img: data.userLog.img,
           message: data.mensagemText,
           hora: horaEnvio,
+          destinatario: data.userSelected.identifier
         });
 
       } catch (erro) {
@@ -120,19 +120,20 @@ function setupSocket(server) {
 
         const [rows] = await db.promise().query(
           `
-      SELECT 
-        chatHistory.hora_envio,
-        chatHistory.mensagem,
-        usuarios.email AS emailRemetente,
-        usuarios.url_imagem AS urlImagemRemetente,
-        usuarios.nome AS nomeRemetente,
-        chatHistory.remetente
-      FROM chatHistory
-      LEFT JOIN Users AS usuarios ON chatHistory.remetente = usuarios.identifier
-      WHERE (chatHistory.remetente = ? AND chatHistory.destinatario = ?)
-        OR (chatHistory.remetente = ? AND chatHistory.destinatario = ?)
-      ORDER BY chatHistory.hora_envio
-      `,
+          SELECT 
+            chatHistory.hora_envio,
+            chatHistory.mensagem,
+            usuarios.email AS emailRemetente,
+            usuarios.url_imagem AS urlImagemRemetente,
+            usuarios.nome AS nomeRemetente,
+            chatHistory.remetente,
+            chatHistory.destinatario
+          FROM chatHistory
+          LEFT JOIN Users AS usuarios ON chatHistory.remetente = usuarios.identifier
+          WHERE (chatHistory.remetente = ? AND chatHistory.destinatario = ?)
+            OR (chatHistory.remetente = ? AND chatHistory.destinatario = ?)
+          ORDER BY chatHistory.hora_envio
+          `,
           [remetente, destinatario, destinatario, remetente]
         );
 
@@ -144,10 +145,12 @@ function setupSocket(server) {
             img: mensagem.urlImagemRemetente,
             message: mensagem.mensagem,
             nome: mensagem.nomeRemetente,
-            remetente: mensagem.remetente,
+            remetente: mensagem.remetente,  
+            destinatario: mensagem.destinatario,
           }));
 
-          socket.emit('historicoMensagens', { historico: historicoSimplificado });
+          // socket.emit('historicoMensagens', { historico: historicoSimplificado });
+          io.to(data.identifier).emit('historicoMensagens', { historico: historicoSimplificado });
         } else {
           console.log('Nenhum mensagem a ser exibida!')
         }
