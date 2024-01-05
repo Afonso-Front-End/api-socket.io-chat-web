@@ -12,14 +12,27 @@ function setupSocket(server) {
     },
   });
 
-  io.on('connect', (socket) => {
+  io.on('connect', async (socket) => {
     let identificador = null
 
-    socket.on('usuario conectado', (identifier) => {
-      console.log('usuario conectado', identifier)
-      socket.join(identifier);
+    socket.on('usuario conectado', async (identifier) => {
+      console.log('Usuário conectado', identifier);
+
+      db.query(
+        'UPDATE Users SET status = ? WHERE identifier = ?',
+        ['online', identifier],
+        (error, results) => {
+          if (error) throw error;
+
+        }
+      );
+
+      io.emit('status', {identifier, mensagem: 'online'})
+
       identificador = identifier
-    })
+      socket.join(identifier);
+      io.emit('atualizarListaUsuarios', { identifier, status: 'online' });
+    });
 
     socket.on('pesquisar', async (identifier) => {
       if (identifier.trim() !== '') {
@@ -88,7 +101,7 @@ function setupSocket(server) {
 
         socket.emit('mensagemEnviada', {
           remetente: data.userLog.identifier,
-          nome: `Eu: ${data.userLog.nome}`,
+          nome: data.userLog.nome,
           email: data.userLog.email,
           img: data.userLog.img,
           message: data.mensagemText,
@@ -98,7 +111,7 @@ function setupSocket(server) {
 
         socket.to(data.userSelected.identifier).emit('novaMensagem', {
           remetente: data.userLog.identifier,
-          nome: `Enviada de: ${data.userLog.nome}`,
+          nome: data.userLog.nome,
           email: data.userLog.email,
           img: data.userLog.img,
           message: data.mensagemText,
@@ -145,7 +158,7 @@ function setupSocket(server) {
             img: mensagem.urlImagemRemetente,
             message: mensagem.mensagem,
             nome: mensagem.nomeRemetente,
-            remetente: mensagem.remetente,  
+            remetente: mensagem.remetente,
             destinatario: mensagem.destinatario,
           }));
 
@@ -163,6 +176,16 @@ function setupSocket(server) {
 
     socket.on('disconnect', () => {
       console.log('usuario desconectado', identificador)
+      db.query(
+        'UPDATE Users SET status = ? WHERE identifier = ?',
+        ['offline', identificador],
+        (error, results) => {
+          if (error) throw error;
+        }
+      );
+
+      io.emit('atualizarListaUsuarios', { identifier: identificador, status: 'offline' });
+      io.emit('status', {identificador, mensagem: 'offline'})
     })
 
   });
@@ -171,7 +194,7 @@ function setupSocket(server) {
 async function obterListaUsuarios(identifier) {
   try {
     const [results] = await db.promise().query(
-      'SELECT U.nome, U.email, U.identifier, U.url_imagem ' +
+      'SELECT U.nome, U.email, U.identifier, U.url_imagem, U.status ' +
       'FROM Users U ' +
       'INNER JOIN ListUsers L ON U.identifier = L.identifier_friend ' +
       'WHERE L.identifier = ?',
