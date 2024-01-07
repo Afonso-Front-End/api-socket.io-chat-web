@@ -1,17 +1,16 @@
 const { Server } = require('socket.io');
 const db = require('./db')
 const moment = require('moment');
-
 function setupSocket(server) {
   const io = new Server(server, {
     cors: { 
-      origin: "*",
+      origin: "https://chat-web-interaction.netlify.app",
       methods: ["GET", "POST"],
       allowedHeaders: ["my-custom-header"],
       credentials: true,
     },
   });
-
+  
   io.on('connect', async (socket) => {
     let identificador = null
 
