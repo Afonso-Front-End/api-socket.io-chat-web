@@ -4,8 +4,8 @@ const moment = require('moment');
 
 function setupSocket(server) {
   const io = new Server(server, {
-    cors: {
-      origin: "*",
+    cors: { 
+      origin: "https://chat-web-interaction.netlify.app",
       methods: ["GET", "POST"],
       allowedHeaders: ["my-custom-header"],
       credentials: true,
@@ -185,7 +185,7 @@ function setupSocket(server) {
       );
 
       io.emit('atualizarListaUsuarios', { identifier: identificador, status: 'offline' });
-      io.emit('status', {identificador, mensagem: 'offline'})
+      io.to(identificador).emit('status', {identificador, mensagem: 'offline'})
     })
 
   });
