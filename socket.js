@@ -4,10 +4,11 @@ const moment = require('moment');
 function setupSocket(server) {
   const io = new Server(server, {
     cors: { 
-      origin: "https://chat-web-interaction.netlify.app",
+      origin: "*",
       methods: ["GET", "POST"],
       allowedHeaders: ["my-custom-header"],
       credentials: true,
+      // path: '/socket.io'
     },
   });
   
