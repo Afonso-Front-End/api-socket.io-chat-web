@@ -4,7 +4,7 @@ const moment = require('moment');
 function setupSocket(server) {
 
   const io = new Server(server, {
-    cors: { 
+    cors: {
       origin: "*",
       methods: ["GET", "POST"],
       allowedHeaders: ["my-custom-header"],
@@ -12,7 +12,7 @@ function setupSocket(server) {
       // path: '/socket.io'
     },
   });
-  
+
   io.on('connect', async (socket) => {
     let identificador = null
 
@@ -28,7 +28,7 @@ function setupSocket(server) {
         }
       );
 
-      io.emit('status', {identifier, mensagem: 'online'})
+      io.emit('status', { identifier, mensagem: 'online' })
 
       identificador = identifier
       socket.join(identifier);
@@ -37,6 +37,10 @@ function setupSocket(server) {
 
     socket.on('pesquisar', async (identifier) => {
       if (identifier.trim() !== '') {
+        if (identifier === identificador) {
+          console.log("proibido")
+          return false
+        }
         try {
           const resultadoPesquisa = await db.promise().query('SELECT  nome, email, identifier, url_imagem FROM Users WHERE identifier LIKE ?', [`%${identifier}%`]);
 
@@ -59,6 +63,11 @@ function setupSocket(server) {
         const existeRelacao = await db.promise().query('SELECT * FROM ListUsers WHERE TRIM(identifier) = ? AND TRIM(identifier_friend) = ?', [usuarioLogado.identifier, usuarioPesquisado.identifier]);
 
         if (existeRelacao[0].length === 0) {
+
+          if (usuarioLogado.identifier === usuarioPesquisado.identifier) {
+            return false
+          }
+
           await db.promise().query('INSERT INTO ListUsers (identifier, identifier_friend, nome, email, url_img) VALUES (?, ?, ?, ?, ?)', [usuarioPesquisado.identifier, usuarioPesquisado.identifier_friend, usuarioPesquisado.nome, usuarioPesquisado.email, usuarioPesquisado.img]);
 
           await db.promise().query('INSERT INTO ListUsers (identifier, identifier_friend, nome, email, url_img) VALUES (?, ?, ?, ?, ?)', [usuarioLogado.identifier, usuarioLogado.identifier_friend, usuarioLogado.nome, usuarioLogado.email, usuarioLogado.img]);
@@ -186,7 +195,7 @@ function setupSocket(server) {
       );
 
       io.emit('atualizarListaUsuarios', { identifier: identificador, status: 'offline' });
-      io.to(identificador).emit('status', {identificador, mensagem: 'offline'})
+      io.to(identificador).emit('status', { identificador, mensagem: 'offline' })
     })
 
   });

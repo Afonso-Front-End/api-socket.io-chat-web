@@ -15,11 +15,6 @@ setupSocket(server);
 
 const PORT = process.env.PORT || 3001;
 
-app.get("/home",(req,res) => {
-  res.json("Hello")
-  res.end()
-})
-
 server.listen(PORT, () => {
   console.log(`Servidor ouvindo na porta ${PORT}`);
 });
