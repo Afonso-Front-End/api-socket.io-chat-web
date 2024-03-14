@@ -46,6 +46,7 @@ function setupSocket(server) {
 
           if (resultadoPesquisa[0].length > 0) {
             io.to(socket.id).emit('resultadoPesquisa', resultadoPesquisa[0]);
+            console.log(resultadoPesquisa)
           } else {
             io.to(socket.id).emit('resultadoPesquisa', []);
           }
@@ -95,6 +96,7 @@ function setupSocket(server) {
       try {
         const results = await obterListaUsuarios(identifier);
         io.to(identifier).emit('lista', results);
+        console.log(results)
       } catch (error) {
         io.to(identifier).emit('lista', { mensagem: [] });
       }
@@ -199,7 +201,7 @@ function setupSocket(server) {
     })
 
   });
-};
+}; 
 
 async function obterListaUsuarios(identifier) {
   try {
